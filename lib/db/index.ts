@@ -1,7 +1,7 @@
 import { drizzle } from "drizzle-orm/neon-http";
 import { neon } from "@neondatabase/serverless";
 
-import * as schema from "../models/schema";
+import * as schema from "../schemas/file_schema";
 
 const POSTGREDB_URI = process.env.DATABASE_URI
 
