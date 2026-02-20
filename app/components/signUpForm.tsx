@@ -6,9 +6,9 @@ import { z } from "zod";
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { LoginForm } from "@/app/components/login-form";
+import { SignupForm } from "./signup-form";
 
-export default function signUpForm() {
+export default function SignUpForm() {
     const [verifying, setVerifying] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [verificationCode, setVerificationCode] = useState<string>("");
@@ -16,12 +16,13 @@ export default function signUpForm() {
     const [authError, setAuthError] = useState<string|null>(null);
     const {signUp, isLoaded, setActive} = useSignUp();
     const router = useRouter();
+    type signUpSchemaType = z.infer<typeof signUpSchema>;
 
     const {
       register,
       handleSubmit,
       formState: { errors },
-    } = useForm<z.infer<typeof signUpSchema>>({
+    } = useForm<signUpSchemaType>({
       resolver: zodResolver(signUpSchema),
       defaultValues: {
         email: "",
@@ -29,7 +30,7 @@ export default function signUpForm() {
         passwordConfirm: "",
       },
     });
-    const onSubmit = async (data: z.infer<typeof signUpSchema>) => {
+    const onSubmit = async (data: signUpSchemaType) => {
         if(!isLoaded) return;
         setIsSubmitting(true);
         setAuthError(null);
@@ -83,7 +84,7 @@ export default function signUpForm() {
     return (
       <div className="bg-muted flex min-h-svh flex-col items-center justify-center p-6 md:p-10">
         <div className="w-full max-w-sm md:max-w-4xl">
-          <LoginForm />
+          <SignupForm />
         </div>
       </div>
     );
