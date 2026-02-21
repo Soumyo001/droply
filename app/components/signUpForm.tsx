@@ -1,38 +1,38 @@
-"use client";
+'use client';
 import { useForm } from "react-hook-form";
 import { useSignUp } from "@clerk/nextjs";
-import { signUpSchema } from "@/lib/schemas/signUpSchema";
 import { z } from "zod";
-import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
-import { SignupForm } from "./signup-form";
+import { signUpSchema } from "@/lib/schemas/signUpSchema";
+import { useState } from "react";
+import { useRouter } from "next/router";
+
+type signUpSchemaType = z.infer<typeof signUpSchema>;
 
 export default function SignUpForm() {
     const [verifying, setVerifying] = useState(false);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [verificationCode, setVerificationCode] = useState<string>("");
-    const [verificationError, setVerificationError] = useState<string|null>(null);
+    const [code, setCode] = useState<string>("");
     const [authError, setAuthError] = useState<string|null>(null);
-    const {signUp, isLoaded, setActive} = useSignUp();
+    const [verifyError, setVerifyError] = useState<string|null>(null);
+    const [isVerifying, setIsVerifying] = useState(false);
+    const { signUp, isLoaded, setActive  } = useSignUp();
     const router = useRouter();
-    type signUpSchemaType = z.infer<typeof signUpSchema>;
 
     const {
-      register,
-      handleSubmit,
-      formState: { errors },
+        register,
+        handleSubmit,
+        formState: { errors, isSubmitting }
     } = useForm<signUpSchemaType>({
-      resolver: zodResolver(signUpSchema),
-      defaultValues: {
-        email: "",
-        password: "",
-        passwordConfirm: "",
-      },
+        resolver: zodResolver(signUpSchema),
+        defaultValues: {
+            email: "",
+            password: "",
+            passwordConfirm: "",
+        },
     });
-    const onSubmit = async (data: signUpSchemaType) => {
+
+    const onSubmit = async(data: signUpSchemaType) => {
         if(!isLoaded) return;
-        setIsSubmitting(true);
         setAuthError(null);
 
         try {
@@ -40,52 +40,37 @@ export default function SignUpForm() {
                 emailAddress: data.email,
                 password: data.password
             });
-            await signUp.prepareEmailAddressVerification({
-                strategy: "email_code"
-            });
+            await signUp.prepareEmailAddressVerification({strategy: "email_code"});
             setVerifying(true);
-        } catch (error: any) {
-            console.log("Signup error: ", error);
-            setAuthError(
-                error.errors?.[0]?.message
-            );
-        } finally {
-            setIsSubmitting(false);
+        } catch (err: any) {
+            setAuthError(err.errors?.[0]?.longMessage ?? "something went wrong");
         }
     }
-    const handleVerificationSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+
+    const handleVerification = async(e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        if(!isLoaded || !signUp) return;
-        setIsSubmitting(true);
-        setAuthError(null);
+        if(!isLoaded) return;
+        setVerifyError(null);
+        setIsVerifying(true);
 
         try {
-            const result = await signUp.attemptEmailAddressVerification({
-                code: verificationCode
-            });
+            const result = await signUp.attemptEmailAddressVerification({code});
             if(result.status === "complete") {
                 await setActive({session: result.createdSessionId});
                 router.push("/dashboard");
             } else {
-                setVerificationError("Verification incomplete");
+                setVerifyError("Incomplete verification. please try again.");
             }
-        } catch(error: any) {
-            setVerificationError(error.errors?.[0]?.message);
+        } catch (err: any) {
+            setVerifyError(err.errors?.[0]?.longMessage ?? "Unknown Error occured. please try again");
         } finally {
-            setIsSubmitting(false);
+            setIsVerifying(false);
         }
     }
 
     if(verifying) {
-        return (
-            <h1>this is OTP entering field</h1>
-        )
+        return <h1>Credentials are verifying</h1>
     }
-    return (
-      <div className="bg-muted flex min-h-svh flex-col items-center justify-center p-6 md:p-10">
-        <div className="w-full max-w-sm md:max-w-4xl">
-          <SignupForm />
-        </div>
-      </div>
-    );
+
+    return <h1>Handling submit</h1>
 }
