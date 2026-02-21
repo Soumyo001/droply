@@ -1,8 +1,5 @@
-import Image from "next/image";
-import SignUpForm from "./components/signUpForm";
+import { redirect } from "next/navigation";
 
 export default function Home() {
-  return (
-      <SignUpForm/>
-  );
+  redirect("/login");
 }
