@@ -1,0 +1,31 @@
+.page {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    min-height: 100vh;
+}
+
+.card {
+    min-width: 450px;
+}
+
+.submit_button {
+    width: 100%;
+    transition: all 0.2s;
+}
+
+.submit_button:hover {
+    transform: translateY(-3px);
+}
+
+.submit_button:active {
+    transform: translateY(0);
+}
+
+@media(max-width: 425px) {
+    .card {
+        min-width: 300px;
+    }
+}
