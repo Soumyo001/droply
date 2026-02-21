@@ -1,9 +1,7 @@
-import React from 'react'
+import LogoutButton from "../components/logout-button";
 
 const Dashboard = () => {
-  return (
-    <div>Dashboard</div>
-  );
+  return <LogoutButton/>
 }
 
 export default Dashboard;
