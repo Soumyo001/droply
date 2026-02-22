@@ -94,13 +94,13 @@ export default function SignUpPage() {
         await signUp?.prepareEmailAddressVerification({strategy: "email_code"});
         setResendInterval(60);
         const interval = setInterval(() => {
-            setResendInterval(prev => {
-                if(prev <= 1) {
-                    clearInterval(interval);
-                    return 0;
-                }
-                return prev - 1;
-            });
+          setResendInterval(prev => {
+            if(prev <= 1) {
+              clearInterval(interval);
+              return 0;
+            }
+            return prev - 1;
+          });
         }, 1000);
     } catch (err: any) {
         setVerificationError(err.errors?.[0]?.longMessage ?? "Failed to resend code. please try again");
@@ -116,49 +116,55 @@ export default function SignUpPage() {
                     <CardDescription>We sent a 6-digit code to your email address.</CardDescription>
                 </CardHeader>
 
-                <form>
-                    <CardContent className="space-y-2.5">
-                        <div className="space-y-1.5">
-                            <Label htmlFor="code">Verification code</Label>
-                            <Input
-                                id="code"
-                                placeholder="Enter 6-digit code"
-                                maxLength={6}
-                                value={code ?? ""}
-                                onChange={(e)=> setCode(e.target.value)}
-                            />
-                        </div>
-                        {verificationError && 
-                            <p className="text-sm text-destructive">
-                                {verificationError}
-                            </p>
-                        }
-                    </CardContent>
-                </form>
-                <CardFooter className="flex flex-col gap-3">
-                    <Button
-                        type="button"
-                        disabled={isVerifying}
-                        className={styles.submit_button}
-                        onClick={handleVerification}
-                    >
-                        {isVerifying? "Verifying...": "Verify"}
-                    </Button>
+                <CardContent>
+                  <form>
+                    <FieldGroup>
+                      <Field>
+                        <FieldLabel htmlFor="code">Verification code</FieldLabel>
+                        <Input
+                            id="code"
+                            placeholder="Enter 6-digit code"
+                            maxLength={6}
+                            value={code ?? ""}
+                            onChange={(e)=> setCode(e.target.value)}
+                        />
+                      </Field>
+                      {verificationError && 
+                        <Field>
+                          <p className="text-sm text-destructive">
+                              {verificationError}
+                          </p>
+                        </Field>
+                      }
 
-                    <p className="text-center text-muted-foreground text-sm">
-                        Didn't recive code ?{" "}
-                        {resendInterval > 0 ? (
-                            <span>{`00:${resendInterval}`}</span>
-                        ) : (
-                            <a 
-                                onClick={handleResend}
-                                className="text-foreground hover:underline cursor-pointer"
+                      <Field>
+                        <Button
+                          type="button"
+                          disabled={isVerifying}
+                          onClick={handleVerification}
+                          className={styles.submit_button}
+                        >
+                          {isVerifying? "Verifying...":"Verify"}
+                        </Button>
+
+                        <FieldDescription className="text-sm text-center text-muted-foreground">
+                          Didn't recive code?{" "}
+                          {resendInterval > 0 ? (
+                            <span>{`00:${String(resendInterval).padStart(2, "0")}`}</span>
+                          ) : (
+                            <a
+                              onClick={handleResend}
+                              className="text-foreground cursor-pointer no-underline hover:underline"
                             >
-                                resend
+                              resend
                             </a>
-                        )}
-                    </p>
-                </CardFooter>
+                          )}
+                        </FieldDescription>
+                      </Field>
+
+                    </FieldGroup>
+                  </form>
+                </CardContent>
             </Card>
         </div>
     );
