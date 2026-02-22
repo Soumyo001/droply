@@ -57,7 +57,6 @@ export function LoginForm({
         router.push("/dashboard");
       } else {
         setAuthError("Authentication failed. please try again");
-        router.refresh();
       }
     } catch (err: any) {
       setAuthError(err.errors?.[0]?.longMessage ?? `Unknown error occured. error: ${err}`);
