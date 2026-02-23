@@ -15,11 +15,13 @@
   "dependencies": {
     "@clerk/nextjs": "^6.37.5",
     "@hookform/resolvers": "^5.2.2",
+    "@imagekit/next": "^2.1.5",
     "@neondatabase/serverless": "^1.0.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dotenv": "^17.3.1",
     "drizzle-orm": "^0.45.1",
+    "imagekit": "^6.0.0",
     "lucide-react": "^0.574.0",
     "next": "16.1.6",
     "radix-ui": "^1.4.3",
