@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server"
+import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { files } from "@/lib/schema/file_schema";
 import { connectDb } from "@/lib/db";
@@ -17,16 +17,16 @@ export const POST = async (request: Request) => {
         const { imagekit, userId: bodyUserId } = body;
         if(bodyUserId !== userId) {
             return NextResponse.json(
-                {message: "user don't have permissions to upload file"}, {status:401}
+                {message: "user don't meet necessary permissions"}, {status: 401}
             );
         }
         if(!imagekit || !imagekit.url) {
             return NextResponse.json(
-                {message: "upload failed. please try again"}, {status: 400}
+                {message: "failed to upload file. please try again"}, {status: 400}
             );
         }
 
-        const { name, filePath, url, thumbnailUrl, fileType, size } = imagekit;
+        const { name, size, filePath, url, fileType, thumbnailUrl } = imagekit;
         const fileData = {
             name: name || "untitled",
             path: filePath || `/droply/${userId}/${name}`,
@@ -45,7 +45,7 @@ export const POST = async (request: Request) => {
 
         const newFile = await db.insert(files).values(fileData).returning();
         return NextResponse.json(
-            {message:"Upload successful", file: newFile}, {status: 200}
+            {message: "file upload successful", file: newFile}, {status: 200}
         );
 
     } catch (err: any) {
@@ -54,22 +54,3 @@ export const POST = async (request: Request) => {
         );
     }
 }
-
-/*
-{
-  "fileId": "6673f88237b244ef54d60180",
-  "name": "test-image.jpg",
-  "size": 117079,
-  "versionInfo": {
-    "id": "6673f88237b244ef54d60180",
-    "name": "Version 1"
-  },
-  "filePath": "/test-image.jpg",
-  "url": "https://ik.imagekit.io/demo/test-image.jpg",
-  "fileType": "image",
-  "height": 500,
-  "width": 1000,
-  "orientation": 1,
-  "thumbnailUrl": "https://ik.imagekit.io/demo/tr:n-ik_ml_thumbnail/test-image.jpg"
-}
-*/
