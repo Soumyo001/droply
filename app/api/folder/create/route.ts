@@ -16,12 +16,12 @@ export const POST = async (request: Request) => {
 
         const { 
             name, 
-            userId:bodyUserId,
+            userId: bodyUserId,
             parentId = null
         } = await request.json();
         if(bodyUserId !== userId) {
             return NextResponse.json(
-                {message: "user don't meet necessary permissions"}, {status: 401}
+                {message: "User don't meet necessary permissions"}, {status:401}
             );
         }
         if(!name || typeof name !== "string" || name.trim() === "") {
@@ -42,7 +42,7 @@ export const POST = async (request: Request) => {
                                     );
             if(!parentFolder) {
                 return NextResponse.json(
-                    {message: "Parent folder not found"}, {status:404}
+                    {message: "Parent folder not found."}, {status:404}
                 );
             }
         }
@@ -60,7 +60,7 @@ export const POST = async (request: Request) => {
             isFolder: true,
             isStarred: false,
             isTrash: false
-        }
+        };
 
         const newFolder = await db.insert(files).values(folderData).returning();
         return NextResponse.json(
