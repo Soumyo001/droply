@@ -57,11 +57,18 @@ export const POST = async (request: Request) => {
             thumbnailUrl: null,
             userId: userId,
             parentId: parentId,
-            isFolder: true
+            isFolder: true,
+            isStarred: false,
+            isTrash: false
         }
 
-
+        const newFolder = await db.insert(files).values(folderData).returning();
+        return NextResponse.json(
+            {message: "Folder created successfully.", folder: newFolder}, {status: 200}
+        );
     } catch (err: any) {
-        
+        return NextResponse.json(
+            {error: `Internal server error: ${err}`}, {status: 500}
+        );
     }
 }
