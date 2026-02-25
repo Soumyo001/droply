@@ -15,7 +15,7 @@ export const GET = async(req: Request) => {
 
         const requestUrl = new URL(req.url);
         const queryParamUserId = requestUrl.searchParams.get("userId");
-        const currentFolderId = requestUrl.searchParams.get("folderId");
+        const parentFolderId = requestUrl.searchParams.get("folderId");
         if(!queryParamUserId || queryParamUserId !== userId) {
             return NextResponse.json(
                 {message: "User don't have necessary permissions to perform this action"},
@@ -24,12 +24,12 @@ export const GET = async(req: Request) => {
         }
         const db = connectDb();
         let userFiles;
-        if(currentFolderId) {
+        if(parentFolderId) {
             userFiles = await db.select()
                             .from(files)
                             .where(
                                 and(
-                                    eq(files.parentId, currentFolderId),
+                                    eq(files.parentId, parentFolderId),
                                     eq(files.userId, userId)
                                 )
                             );
