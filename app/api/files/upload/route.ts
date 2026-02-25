@@ -11,9 +11,10 @@ export const POST = async(request: Request) => {
         const { userId } = await auth();
         if(!userId) {
             return NextResponse.json(
-                {message: "Unauthorized user"}, {status:401}
+                {message: "Unauthorized user"}, {status: 401}
             );
         }
+        
         const formData = await request.formData();
         const file = formData.get("file") as File;
         const formUserId = formData.get("userId") as string;
@@ -21,7 +22,7 @@ export const POST = async(request: Request) => {
 
         if(formUserId !== userId) {
             return NextResponse.json(
-                {message: "Unauthorized user"}, {status:401}
+                {message: "Unauthorized user"}, {status: 401}
             );
         }
         if(!file) {
@@ -33,56 +34,58 @@ export const POST = async(request: Request) => {
         const db = connectDb();
         if(parentId) {
             const parentFolder = await db.select()
-                        .from(files)
-                        .where(
-                            and(
-                                eq(files.userId, userId),
-                                eq(files.id, parentId),
-                                eq(files.isFolder, true)
-                            )
-                        );
+                                    .from(files)
+                                    .where(
+                                        and(
+                                            eq(files.id, parentId),
+                                            eq(files.userId, userId),
+                                            eq(files.isFolder, true)
+                                        )
+                                    );
             if(!parentFolder) {
                 return NextResponse.json(
-                    {message: "Parent folder not found."}, {status: 404}
+                    {message: "parent folder not found"}, {status: 404}
                 );
             }
         }
-
-        if(!file.type.startsWith("image/") && !file.type.startsWith("application/pdf")) {
+        if(!file.type.startsWith("image/") && file.type !== "application/pdf") {
             return NextResponse.json(
-                {message: "we accept only image and pdf"}, {status: 400}
+                {message: "File must be an image or pdf"}, {status: 400}
             );
         }
         const buffer = await file.arrayBuffer();
         const fileBuffer = Buffer.from(buffer);
-        const folderPath = parentId? 
-            `/droply/${userId}/folder/${parentId}` : 
-            `/droply/${userId}`;
-        const fileExtension = file.name.split(".").pop();
+        const folderPath = parentId ?
+                    `/droply/${userId}/folders/${parentId}` :
+                    `/droply/${userId}`;
+        const fileExtension = file.name.split(".").pop() || "";
         const uniqueFileName = `${v4()}.${fileExtension}`;
-        const uploadResponse = await imagekit.upload({
+        
+        const fileUploadResponse = await imagekit.upload({
             file: fileBuffer,
             fileName: uniqueFileName,
             folder: folderPath,
             useUniqueFileName: false
         });
-        const fileData = {
+        const filedata = {
             name: file.name,
-            path: uploadResponse.filePath,
+            path: fileUploadResponse.filePath,
             size: file.size,
             type: file.type,
-            fileUrl: uploadResponse.url,
-            thumbnailUrl: uploadResponse.thumbnailUrl,
+            fileUrl: fileUploadResponse.url,
+            thumbnailUrl: fileUploadResponse.thumbnailUrl,
             userId: userId,
             parentId: parentId,
             isFolder: false,
             isStarred: false,
             isTrash: false
         };
-        const newFile = await db.insert(files).values(fileData).returning();
-        return NextResponse.json(
-            {message: "File uploaded successfully", file: newFile}, {status: 200}
-        );
+        const newFile = await db.insert(files).values(filedata).returning();
+        return NextResponse.json({
+            message: "File upload successful",
+            file: newFile
+        }, {status: 200});
+        
     } catch (err: any) {
         return NextResponse.json(
             {error: `Internal server error: ${err}`}, {status: 500}
