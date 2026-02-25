@@ -29,22 +29,25 @@ export const POST = async(request: Request) => {
                 {message: "File not found. please try again."}, {status: 404}
             );
         }
-        if(!parentId) {
-            return NextResponse.json(
-                {message: "Parent folder not found"}, {status: 404}
-            );
-        }
 
         const db = connectDb();
-        const parentFolder = await db.select()
-                                .from(files)
-                                .where(
-                                    and(
-                                        eq(files.userId, userId),
-                                        eq(files.id, parentId),
-                                        eq(files.isFolder, true)
-                                    )
-                                );
+        if(parentId) {
+            const parentFolder = await db.select()
+                        .from(files)
+                        .where(
+                            and(
+                                eq(files.userId, userId),
+                                eq(files.id, parentId),
+                                eq(files.isFolder, true)
+                            )
+                        );
+            if(!parentFolder) {
+                return NextResponse.json(
+                    {message: "Parent folder not found."}, {status: 404}
+                );
+            }
+        }
+
         if(!file.type.startsWith("image/") && !file.type.startsWith("application/pdf")) {
             return NextResponse.json(
                 {message: "we accept only image and pdf"}, {status: 400}
@@ -52,7 +55,9 @@ export const POST = async(request: Request) => {
         }
         const buffer = await file.arrayBuffer();
         const fileBuffer = Buffer.from(buffer);
-        const folderPath = parentId? `/droply/${userId}/folder/${parentId}`:`/droply/${userId}`;
+        const folderPath = parentId? 
+            `/droply/${userId}/folder/${parentId}` : 
+            `/droply/${userId}`;
         const fileExtension = file.name.split(".").pop();
         const uniqueFileName = `${v4()}.${fileExtension}`;
         const uploadResponse = await imagekit.upload({
