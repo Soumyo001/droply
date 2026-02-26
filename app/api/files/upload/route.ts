@@ -57,9 +57,9 @@ export const POST = async(request: Request) => {
         const buffer = await file.arrayBuffer();
         const fileBuffer = Buffer.from(buffer);
         const folderPath = parentId ?
-                    `/droply/${userId}/folders/${parentId}` :
+                    `/droply/${userId}/folder/${parentId}` :
                     `/droply/${userId}`;
-        const fileExtension = file.name.split(".").pop() || "";
+        const fileExtension = file.name.split(".").pop() || "unknown";
         const uniqueFileName = `${v4()}.${fileExtension}`;
         
         const fileUploadResponse = await imagekit.upload({

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
+import ImagekitProvider from "./components/providers/imagekit_provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -40,7 +41,9 @@ export default function RootLayout({
             display: "flex",
             flexDirection: "column"
           }}>
-            {children}
+            <ImagekitProvider>
+              {children}
+            </ImagekitProvider>
           </main>
         </body>
       </html>

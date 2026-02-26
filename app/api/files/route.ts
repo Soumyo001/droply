@@ -29,8 +29,8 @@ export const GET = async(req: Request) => {
                             .from(files)
                             .where(
                                 and(
-                                    eq(files.parentId, parentFolderId),
-                                    eq(files.userId, userId)
+                                    eq(files.userId, userId),
+                                    eq(files.parentId, parentFolderId)
                                 )
                             );
         } else {
