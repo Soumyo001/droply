@@ -31,7 +31,7 @@ export const POST = async (request: Request) => {
         }
         const db = connectDb();
         if(parentId) {
-            const parentFolder = await db.select()
+            const [parentFolder] = await db.select()
                                     .from(files)
                                     .where(
                                         and(

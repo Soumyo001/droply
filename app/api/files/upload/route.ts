@@ -30,10 +30,15 @@ export const POST = async(request: Request) => {
                 {message: "File not found. please try again."}, {status: 404}
             );
         }
+        if(!file.type.startsWith("image/") && file.type !== "application/pdf") {
+            return NextResponse.json(
+                {message: "File must be an image or pdf"}, {status: 400}
+            );
+        }
 
         const db = connectDb();
         if(parentId) {
-            const parentFolder = await db.select()
+            const [parentFolder] = await db.select()
                                     .from(files)
                                     .where(
                                         and(
@@ -48,11 +53,7 @@ export const POST = async(request: Request) => {
                 );
             }
         }
-        if(!file.type.startsWith("image/") && file.type !== "application/pdf") {
-            return NextResponse.json(
-                {message: "File must be an image or pdf"}, {status: 400}
-            );
-        }
+
         const buffer = await file.arrayBuffer();
         const fileBuffer = Buffer.from(buffer);
         const folderPath = parentId ?
