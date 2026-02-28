@@ -3,6 +3,8 @@ import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
 import ImagekitProvider from "./components/providers/imagekit_provider";
+import ConditionalHeader from "./components/conditional_header/conditional_header";
+import AppThemeProvider from "./components/providers/theme_provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,18 +35,25 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning className={`${inter.variable} antialiased`}>
-        <body>
-          <main style={{
-            flex: 1,
-            minWidth: 0,
-            width: "100%",
-            display: "flex",
-            flexDirection: "column"
-          }}>
-            <ImagekitProvider>
-              {children}
-            </ImagekitProvider>
-          </main>
+        <body style={{
+          maxWidth: "100vw",
+          overflowX: "hidden"
+        }}>
+          <AppThemeProvider>
+            <ConditionalHeader/>
+            <main style={{
+              flex: 1,
+              minWidth: 0,
+              width: "100%",
+              display: "flex",
+              flexDirection: "column",
+              padding: "20px"
+            }}>
+              <ImagekitProvider>
+                {children}
+              </ImagekitProvider>
+            </main>
+          </AppThemeProvider>
         </body>
       </html>
     </ClerkProvider>

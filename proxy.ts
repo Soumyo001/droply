@@ -12,7 +12,7 @@ export default clerkMiddleware(async(auth, request) => {
   }
 
   // user auto redirect if logged in
-  if(userId && isPublicRoute(request)){
+  if(userId && isPublicRoute(request)) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
