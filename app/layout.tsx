@@ -1,6 +1,12 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
+import { cn } from "@/lib/utils";
+import AppThemeProvider from "@/components/providers/theme-provider";
+import { ClerkProvider } from "@clerk/nextjs"
+import { Toaster } from "sonner"
+
+const inter = Inter({subsets:['latin'],variable:'--font-sans'});
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,11 +29,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">{children}</body>
-    </html>
+    <ClerkProvider>
+      <html
+        lang="en"
+        className={cn("h-full", "antialiased", geistSans.variable, geistMono.variable, inter.variable)}
+        suppressHydrationWarning
+        data-darkreader-ignore
+      >
+        <body className="min-h-full flex flex-col">
+          <AppThemeProvider>
+            <main className="flex-1 min-w-0 flex flex-col w-full">
+              {children}
+            </main>
+          </AppThemeProvider>
+          <Toaster richColors position="top-right"/>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }
