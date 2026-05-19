@@ -4,6 +4,7 @@ import File from "@/lib/schemas/file.schema";
 import User from "@/lib/schemas/user.schema";
 import { auth } from "@clerk/nextjs/server";
 import connect from "@/lib/db";
+import { Types } from "mongoose";
 
 export const GET = async(req: Request) => {
     try {
@@ -23,6 +24,11 @@ export const GET = async(req: Request) => {
         }
         const url = new URL(req.url);
         const parent_folder_id = url.searchParams.get("parentId");
+        if(parent_folder_id && !Types.ObjectId.isValid(parent_folder_id)) {
+            return NextResponse.json(
+                {message: "Invalid parent folder ID"}, {status: 400}
+            );
+        }
         const files = await File.find({
                         parent_folder_id: parent_folder_id || null,
                         user_id: user._id,

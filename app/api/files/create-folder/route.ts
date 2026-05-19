@@ -5,6 +5,7 @@ import { FileItem, UserItem } from "@/lib/types";
 import connect from "@/lib/db";
 import { auth } from "@clerk/nextjs/server";
 import { buildMongodbPath } from "@/lib/utils/path-util";
+import { Types } from "mongoose";
 
 export const POST = async(req: Request) => {
     try {
@@ -29,6 +30,12 @@ export const POST = async(req: Request) => {
                 {message: "Need folder name"}, {status: 400}
             );
         }
+        if(parent_folder_id && !Types.ObjectId.isValid(parent_folder_id)) {
+            return NextResponse.json(
+                {message: "Invalid Parent folder ID"}, {status: 400}
+            );
+        }
+
         let mongodb_parent_folder_path = `/`;
         if(parent_folder_id) {
             const parent_folder = await File

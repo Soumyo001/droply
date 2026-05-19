@@ -61,6 +61,40 @@ const AllFilesSection = ({
         return files.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
     }, [files, page]);
 
+    const handleStar = async(file: FileItem) => {
+        try {
+            const res = await fetch(`/api/files/${file._id}/star`, {
+                method: "PATCH",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({parent_folder_id: file.parent_folder_id || null})
+            });
+            const body = await res.json();
+            if(!res.ok) throw new Error(body.message);
+            setFiles(prev => 
+                prev.map<FileItem>(f => f._id === file._id? {...f, is_starred: !f.is_starred} : f)
+            )
+            toast.success(body.message);
+        } catch (err: any) {
+            toast.error(err.message);
+        }
+    }
+
+    const handleTrash = async(file: FileItem) => {
+        try {
+            const res = await fetch(`/api/files/${file._id}/trash`, {
+                method: "PATCH",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({parent_folder_id: file.parent_folder_id || null})
+            });
+            const body = await res.json();
+            if(!res.ok) throw new Error(body.message);
+            setFiles(prev => prev.filter(f => f._id !== file._id));
+            toast.success(body.message);
+        } catch (err: any) {
+            toast.error(err.message);
+        }
+    }
+
     return (
         <div className="flex flex-col justify-start items-start w-full">
             <div className="flex justify-between items-center w-full border-b py-5 mb-4">
@@ -183,6 +217,7 @@ const AllFilesSection = ({
                                             variant={"ghost"}
                                             size={"icon"}
                                             className={"cursor-pointer w-8 h-8"}
+                                            onClick={() => handleStar(file)}
                                         >
                                             <Star className={`w-4 h-4 ${file.is_starred ? "fill-amber-400 text-amber-400":""}`}/>
                                         </Button>
@@ -191,6 +226,7 @@ const AllFilesSection = ({
                                             variant={"ghost"}
                                             size={"icon"}
                                             className={"cursor-pointer w-8 h-8"}
+                                            onClick={() => handleTrash(file)}
                                         >
                                             <Trash2 className="w-4 h-4 text-destructive hover:text-destructive"/>
                                         </Button>

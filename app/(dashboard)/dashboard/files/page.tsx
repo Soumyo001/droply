@@ -10,7 +10,7 @@ import { useCallback, useState } from 'react'
 
 const FilesPage = () => {
   const [breadcrumbs, setBreadcrumbs] = useState<BreadCrumbItem[]>([
-    {_id: null, name: "Home"}
+    {_id: null, name: "Root"}
   ]);
   const [refreshKey, setRefreshKey] = useState<number>(0);
   const currentFolderId = breadcrumbs[breadcrumbs.length - 1]._id;

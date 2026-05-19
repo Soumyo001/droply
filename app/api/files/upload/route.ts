@@ -6,6 +6,7 @@ import User from "@/lib/schemas/user.schema";
 import { auth } from "@clerk/nextjs/server";
 import connect from "@/lib/db";
 import { buildCloudinaryPath, buildMongodbPath } from "@/lib/utils/path-util";
+import { Types } from "mongoose";
 
 export const POST = async(req: Request) => {
     try {
@@ -39,6 +40,11 @@ export const POST = async(req: Request) => {
         if(file.size > 5*1024*1024) {
             return NextResponse.json(
                 {message: "Image size must be less than 5MB"}, {status: 400}
+            );
+        }
+        if(parent_folder_id && !Types.ObjectId.isValid(parent_folder_id)) {
+            return NextResponse.json(
+                {message: "Invalid parent folder ID"}, {status: 400}
             );
         }
 
