@@ -7,7 +7,12 @@ import { cn } from "@/lib/utils"
 import { Loader } from "lucide-react"
 import NewFolderButton from "./new-folder-button"
 
-const UploadImageSection = ({currentFolderId}: {currentFolderId: string|null}) => {
+type Props = {
+    currentFolderId: string|null;
+    onSuccess: () => void;
+}
+
+const UploadImageSection = ({currentFolderId, onSuccess}: Props) => {
     const [cover, setCover] = useState<string>("");
     const [file, setFile] = useState<File|null>(null);
     const [loading, setLoading] = useState<boolean>(false);
@@ -39,6 +44,7 @@ const UploadImageSection = ({currentFolderId}: {currentFolderId: string|null}) =
             const body = await res.json();
             if(!res.ok) throw new Error(body.message);
             toast.success(body.message);
+            onSuccess();
             setCover("");
             setFile(null);
             if(inputRef.current) inputRef.current.value = "";
@@ -60,6 +66,7 @@ const UploadImageSection = ({currentFolderId}: {currentFolderId: string|null}) =
             const body = await res.json();
             if(!res.ok) throw new Error(body.message);
             toast.success(body.message);
+            onSuccess();
         } catch (err: any) {
             toast.error(err.message);
         } finally {
@@ -92,7 +99,7 @@ const UploadImageSection = ({currentFolderId}: {currentFolderId: string|null}) =
                 htmlFor="image-upload"
                 className={cn(
                   "flex h-52 max-sm:h-40 w-full max-sm:px-2 justify-center items-center cursor-pointer border border-dashed border-muted-foreground/40 hover:border-muted-foreground/70 transition-colors duration-300 rounded-xl",
-                  cover && "h-fit hover:border-muted-foreground/40 max-sm:p-0 max-sm:h-30"
+                  cover && file && "h-fit hover:border-muted-foreground/40 max-sm:p-0 max-sm:h-30"
                 )}
             >
                 {!cover && !file && <div className="flex flex-col justify-center items-center">

@@ -12,6 +12,7 @@ const FilesPage = () => {
   const [breadcrumbs, setBreadcrumbs] = useState<BreadCrumbItem[]>([
     {_id: null, name: "Home"}
   ]);
+  const [refreshKey, setRefreshKey] = useState<number>(0);
   const currentFolderId = breadcrumbs[breadcrumbs.length - 1]._id;
 
   const handleFolderClick = useCallback(({_id, name}: BreadCrumbItem) => {
@@ -22,9 +23,14 @@ const FilesPage = () => {
     setBreadcrumbs(prev => prev.slice(0, index + 1 ));
   }, []);
 
+  const triggerRefresh = useCallback(() => setRefreshKey(prev => prev + 1), []);
+
   return (
     <div className='flex md:flex-row flex-col w-full justify-start items-start gap-6'>
-      <UploadImageSection currentFolderId={currentFolderId}/>
+      <UploadImageSection 
+        currentFolderId={currentFolderId}
+        onSuccess={triggerRefresh}
+      />
       <div className='border border-border flex-1 rounded-xl p-4 w-full'>
         <p className='flex gap-2 items-center text-xl text-left text-primary font-bold mb-6'>
           <FileText className='w-6 h-6'/> Your Files
@@ -46,6 +52,8 @@ const FilesPage = () => {
           </TabsList>
           <TabsContent value={"all_files"}>
             <AllFilesSection
+              refreshKey={refreshKey}
+              onRefresh={triggerRefresh}
               breadcrumbs={breadcrumbs}
               currentFolderId={currentFolderId}
               handleBreadcrumbClick={handleBreadcrumbClick}

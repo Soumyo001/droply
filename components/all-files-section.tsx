@@ -1,5 +1,5 @@
 'use client'
-import { Loader, RefreshCcw, Folder, Star, Trash2, ChevronRight, Home } from "lucide-react"
+import { Loader, RefreshCcw, Folder, FolderUp, Star, Trash2, ChevronRight, Home, FolderDown } from "lucide-react"
 import { Button } from "./ui/button"
 import { Table, TableBody, TableCell, TableHeader, TableHead, TableRow } from "./ui/table"
 import { BreadCrumbItem, FileItem } from "@/lib/types";
@@ -17,6 +17,8 @@ import {
 import { cn } from "@/lib/utils";
 
 type Props = {
+    refreshKey: number;
+    onRefresh: () => void;
     breadcrumbs: BreadCrumbItem[];
     currentFolderId: string|null;
     handleFolderClick: ({_id, name}: BreadCrumbItem) => void;
@@ -25,7 +27,14 @@ type Props = {
 
 const ITEMS_PER_PAGE: number = 10;
 
-const AllFilesSection = ({ breadcrumbs, currentFolderId, handleFolderClick, handleBreadcrumbClick }: Props) => {
+const AllFilesSection = ({
+        refreshKey, 
+        onRefresh, 
+        breadcrumbs, 
+        currentFolderId, 
+        handleFolderClick, 
+        handleBreadcrumbClick 
+    }: Props) => {
     const [files, setFiles] = useState<FileItem[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [page, setPage] = useState<number>(1);
@@ -45,10 +54,10 @@ const AllFilesSection = ({ breadcrumbs, currentFolderId, handleFolderClick, hand
             }
         }
         fetchFiles();
-    }, [currentFolderId]);
+    }, [currentFolderId, refreshKey]);
 
     const total_pages = Math.max(1, Math.ceil(files.length / ITEMS_PER_PAGE));
-    const paginated = useMemo(() => {
+    const paginated = useMemo<FileItem[]>(() => {
         return files.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
     }, [files, page]);
 
@@ -61,6 +70,7 @@ const AllFilesSection = ({ breadcrumbs, currentFolderId, handleFolderClick, hand
                     variant={"secondary"}
                     size={"lg"}
                     className={"cursor-pointer"}
+                    onClick={onRefresh}
                 >
                     <RefreshCcw className="w-3 h-3"/> Refresh
                 </Button>
@@ -107,6 +117,19 @@ const AllFilesSection = ({ breadcrumbs, currentFolderId, handleFolderClick, hand
                                 </div>
                             </TableCell>
                         </TableRow>)}
+                        {!loading && paginated.length === 0 && <TableRow className="hover:bg-accent/10">
+                            <TableCell colSpan={5} className="p-0 pt-2">
+                                <div className="flex flex-col justify-center items-center w-full py-20 bg-muted/20 rounded-lg border border-dashed border-muted-foreground/40">
+                                    <FolderDown className="w-8 h-8 text-muted-foreground"/>
+                                    <p className="text-base text-primary text-center mt-1">
+                                        No files uploaded yet
+                                    </p>
+                                    <p className="text-xs text-muted-foreground text-center font-medium">
+                                        Upload or create a folder to start your journey!
+                                    </p>
+                                </div>
+                            </TableCell>
+                        </TableRow>}
                         {!loading && paginated.map((file) => (
                             <TableRow key={file._id} className="hover:bg-accent/40">
                                 <TableCell>
@@ -177,8 +200,8 @@ const AllFilesSection = ({ breadcrumbs, currentFolderId, handleFolderClick, hand
                         ))}
                     </TableBody>
                 </Table>
-                {files.length > 0 && <p className="text-xs text-left text-muted-foreground pl-1 mt-2">
-                    {`${files.filter(file => file.is_folder).length} folder(s) · ${files.filter(file => !file.is_folder && !file.is_trash).length} image(s)`}
+                {paginated.length > 0 && <p className="text-xs text-left text-muted-foreground pl-1 mt-2">
+                    {`${paginated.filter(file => file.is_folder).length} folder(s) · ${paginated.filter(file => !file.is_folder && !file.is_trash).length} image(s)`}
                 </p>}
                 {total_pages > 1 && <Pagination className="mt-4">
                     <PaginationContent>
