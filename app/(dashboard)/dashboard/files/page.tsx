@@ -2,15 +2,15 @@
 import UploadImageSection from '@/components/upload-image-section/upload-image-section'
 import { FileText, File, Star, Trash } from 'lucide-react'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import AllFilesSection from '@/components/all-files-section'
-import StarredSection from '@/components/starred-section'
-import TrashSection from '@/components/trash-section'
+import AllFilesSection from '@/components/files-section/all-files-section'
+import StarredSection from '@/components/files-section/starred-section'
+import TrashSection from '@/components/files-section/trash-section'
 import { BreadCrumbItem } from '@/lib/types'
 import { useCallback, useState } from 'react'
 
 const FilesPage = () => {
   const [breadcrumbs, setBreadcrumbs] = useState<BreadCrumbItem[]>([
-    {_id: null, name: "Root"}
+    {_id: null, name: "Home"}
   ]);
   const [refreshKey, setRefreshKey] = useState<number>(0);
   const currentFolderId = breadcrumbs[breadcrumbs.length - 1]._id;

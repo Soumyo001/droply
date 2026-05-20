@@ -4,16 +4,21 @@ import { UserItem, FileItem } from "@/lib/types";
 import File from "@/lib/schemas/file.schema";
 import User from "@/lib/schemas/user.schema";
 import connect from "@/lib/db";
-import mongoose, { Types } from "mongoose";
-import { buildMongodbPath, escapeRegex } from "@/lib/utils/path-util";
+import { Types } from "mongoose";
+import cloudinary from "@/lib/db/cloudinary";
+import { buildCloudinaryPath } from "@/lib/utils/path-util";
 
-async function dfs(file: FileItem, ids: string[], visited: Set<string>) {
-    if(visited.has(file._id)) return;
-    ids.push(file._id);
-    visited.add(file._id);
+async function dfs(v_id: string, ids: string[], user_id: string) {
+    ids.push(v_id);
 
-    const files = await File.find({parent_folder_id: file._id}).lean<FileItem[]>();
-    for(const f of files) await dfs(f, ids, visited);
+    const child_files = await File
+                    .find({parent_folder_id: v_id, user_id})
+                    .select({_id: 1})
+                    .lean<{_id: string|Types.ObjectId}[]>();
+
+    const promises = child_files.map(f => dfs(String(f._id), ids, user_id));
+    await Promise.all(promises);
+    // for(const f of child_files) await dfs(String(f._id), ids, user_id);
 }
 
 
@@ -67,19 +72,16 @@ export const PATCH = async(req: Request, {params}: {params: Promise<{id: string}
         }
         const newTrashState = !file.is_trash;
         if(file.is_folder) {
-            let current_folder_path = buildMongodbPath(file.path, file.name);
-            current_folder_path = escapeRegex(current_folder_path);
-
+            const all_ids: string[] = [];
+            await dfs(String(file._id), all_ids, String(user._id));
             await File.updateMany(
                 {
-                    user_id: user._id,
-                    $or: [
-                        { _id: file._id },
-                        { path: { $regex: `^${current_folder_path}` } }
-                    ]
+                    _id: {$in: all_ids},
+                    user_id: user._id
                 },
-                { is_trash: newTrashState }
+                {is_trash: newTrashState}
             );
+
         } else {
             await File.findOneAndUpdate(
                 {_id: file._id, user_id: user._id, parent_folder_id: parent_folder_id || null},
@@ -96,6 +98,98 @@ export const PATCH = async(req: Request, {params}: {params: Promise<{id: string}
     } catch (err: any) {
         return NextResponse.json(
             {message: `Server error: ${err.message}`}, {status: 500}
+        );
+    }
+}
+
+export const DELETE = async(req: Request, {params}: {params: Promise<{id: string}>}) => {
+    try {
+        const { userId, isAuthenticated } = await auth();
+        if(!userId || !isAuthenticated) {
+            return NextResponse.json(
+                {message: "Unauthorized. User must be logged in"}, {status: 401}
+            );
+        }
+        const user = await User.findOne({clerk_id: userId}).lean<UserItem>();
+        if(!user) {
+            return NextResponse.json(
+                {message: "Warning! User account not synced. please re-login to sync your account"},
+                {status: 404}
+            );
+        }
+        const { id } = await params;
+        const { parent_folder_id } = await req.json();
+        if(!id || !Types.ObjectId.isValid(id)) {
+            return NextResponse.json(
+                {message: "Invalid ID"}, {status: 400}
+            );
+        }
+        if(parent_folder_id && !Types.ObjectId.isValid(parent_folder_id)) {
+            return NextResponse.json(
+                {message: "Invalid parent folder ID"}, {status: 400}
+            );
+        }
+        if(parent_folder_id) {
+            const parent_folder = await File
+                                    .findOne({_id: parent_folder_id, user_id: user._id})
+                                    .lean<FileItem>();
+            if(!parent_folder) {
+                return NextResponse.json(
+                    {message: "Parent folder not found"}, {status: 404}
+                );
+            }
+        }
+        const file = await File.findOne({
+                        _id: id,
+                        parent_folder_id: parent_folder_id || null,
+                        user_id: user._id,
+                        is_trash: true
+                    }).lean<FileItem>();
+        if(!file) {
+            return NextResponse.json(
+                {message: "File not found"}, {status: 404}
+            );
+        }
+        if(file.is_folder) {
+            const all_ids: string[] = [];
+            await dfs(String(file._id), all_ids, String(user._id));
+
+            // handle cloudinary api
+            const image_files = await File.find({
+                                        _id: {$in: all_ids},
+                                        user_id: user._id,
+                                        cloudinary_public_id: {$ne: null},
+                                        is_folder: false
+                                    })
+                                    .select({cloudinary_public_id: 1})
+                                    .lean<{cloudinary_public_id: string}[]>();
+            if(image_files.length > 0) {
+                const public_ids = image_files.map(e => e.cloudinary_public_id);
+                if(public_ids.length > 80) {
+                    const BATCH_SIZE = 80;
+                    for(let i = 0; i < public_ids.length; i+=BATCH_SIZE) {
+                        await cloudinary.api.delete_resources(public_ids.slice(i, i + BATCH_SIZE));
+                    }
+                } else {
+                    await cloudinary.api.delete_resources(public_ids);
+                }
+            }
+            await File.deleteMany(
+                {_id: {$in: all_ids}, user_id: user._id}
+            );
+        } else {
+            if(file.cloudinary_public_id) {
+                await cloudinary.uploader.destroy(file.cloudinary_public_id);
+            }
+            await File.findByIdAndDelete(file._id);
+        }
+        return NextResponse.json(
+            {message: `${file.is_folder? "Folder and all it's contents are":"File has been"} permanently deleted`},
+            {status: 200}
+        );
+    } catch (err: any) {
+        return NextResponse.json(
+            {message: `Server error`}, {status: 500}
         );
     }
 }

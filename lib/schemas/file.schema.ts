@@ -25,7 +25,6 @@ const FileSchema = new Schema(
 );
 
 FileSchema.index({user_id: 1});
-FileSchema.index({user_id: 1, path: 1});
 FileSchema.index({user_id: 1, parent_folder_id: 1});
 FileSchema.index({user_id: 1, is_starred: 1});
 FileSchema.index({user_id: 1, is_trash: 1});
