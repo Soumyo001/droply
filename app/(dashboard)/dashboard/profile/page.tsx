@@ -35,7 +35,7 @@ const ProfilePage = () => {
                   className="object-cover"
                 />
               ):(
-                <UserIcon className="w-4 h-4"/>
+                <UserIcon className="w-8 h-8"/>
               )}
             </div>
             <p>{user?.primaryEmailAddress?.emailAddress}</p>
