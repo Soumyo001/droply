@@ -110,6 +110,7 @@ export const DELETE = async(req: Request, {params}: {params: Promise<{id: string
                 {message: "Unauthorized. User must be logged in"}, {status: 401}
             );
         }
+        await connect();
         const user = await User.findOne({clerk_id: userId}).lean<UserItem>();
         if(!user) {
             return NextResponse.json(
@@ -154,7 +155,7 @@ export const DELETE = async(req: Request, {params}: {params: Promise<{id: string
             const all_ids: string[] = [];
             await dfs(String(file._id), all_ids, String(user._id));
 
-            // handle cloudinary api
+            // handle cloudinary api delete first
             const image_files = await File.find({
                                         _id: {$in: all_ids},
                                         user_id: user._id,
@@ -165,15 +166,12 @@ export const DELETE = async(req: Request, {params}: {params: Promise<{id: string
                                     .lean<{cloudinary_public_id: string}[]>();
             if(image_files.length > 0) {
                 const public_ids = image_files.map(e => e.cloudinary_public_id);
-                if(public_ids.length > 80) {
-                    const BATCH_SIZE = 80;
-                    for(let i = 0; i < public_ids.length; i+=BATCH_SIZE) {
-                        await cloudinary.api.delete_resources(public_ids.slice(i, i + BATCH_SIZE));
-                    }
-                } else {
-                    await cloudinary.api.delete_resources(public_ids);
+                const BATCH_SIZE = 80;
+                for(let i = 0; i < public_ids.length; i+=BATCH_SIZE) {
+                    await cloudinary.api.delete_resources(public_ids.slice(i, i + BATCH_SIZE));
                 }
             }
+            // handle database delete
             await File.deleteMany(
                 {_id: {$in: all_ids}, user_id: user._id}
             );
@@ -189,7 +187,7 @@ export const DELETE = async(req: Request, {params}: {params: Promise<{id: string
         );
     } catch (err: any) {
         return NextResponse.json(
-            {message: `Server error`}, {status: 500}
+            {message: `Server error: ${err.message}`}, {status: 500}
         );
     }
 }

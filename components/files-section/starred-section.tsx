@@ -1,3 +1,4 @@
+'use client'
 import { useCallback, useEffect, useState } from 'react'
 import { Button } from '../ui/button'
 import { RefreshCcw, Star } from 'lucide-react'
@@ -51,9 +52,13 @@ const StarredSection = () => {
       });
       const body = await res.json();
       if(!res.ok) throw new Error(body.message);
-      setStarredFiles(prev =>
-        prev.map(f => f._id === file._id ? {...f, is_starred: !f.is_starred}:f)
-      );
+      if(!currentFolderId) {
+        setStarredFiles(prev => prev.filter(f => f._id !== file._id));
+      } else {
+        setStarredFiles(prev =>
+          prev.map(f => f._id === file._id ? {...f, is_starred: !f.is_starred}:f)
+        );
+      }
       
       toast.success(body.message);
     } catch (err: any) {

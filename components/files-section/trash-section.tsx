@@ -1,3 +1,4 @@
+'use client'
 import { RefreshCcw, RotateCcw, Trash2 } from "lucide-react"
 import { Button } from "../ui/button"
 import { useCallback, useEffect, useState } from "react"

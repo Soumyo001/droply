@@ -54,14 +54,18 @@ export const GET = async(req: Request) => {
                                 is_trash: false,
                             }).sort({is_folder: -1, name: 1}).lean<FileItem[]>();
             
-            const all_starred_paths = all_starred.map(f => buildMongodbPath(f.path, f.name));
+            const all_starred_full_paths = new Set<string>(
+                all_starred.map(f => buildMongodbPath(f.path, f.name))
+            );
             files = all_starred.filter(f => {
                 if(!f.parent_folder_id) return true;
-                const current_full_path = buildMongodbPath(f.path, f.name);
-                return all_starred_paths.every(path => {
-                    if(path === current_full_path) return true;
-                    return !current_full_path.startsWith(path);
-                });
+                const paths = f.path.split('/').filter(Boolean);
+                let current_path = '/';
+                for(const part of paths) {
+                    current_path += part + '/';
+                    if(all_starred_full_paths.has(current_path)) return false;
+                }
+                return true;
             });
         }
 
