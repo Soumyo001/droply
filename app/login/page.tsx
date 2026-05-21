@@ -119,8 +119,8 @@ import { toast } from "sonner"
                                         className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground cursor-pointer bg-none"
                                     >
                                         {showPassword 
-                                        ? <EyeOff className="w-5 h-5" data-darkreader-ignore/>
-                                        : <Eye className="w-5 h-5" data-darkreader-ignore/>}
+                                        ? <Eye className="w-5 h-5" data-darkreader-ignore/>
+                                        : <EyeOff className="w-5 h-5" data-darkreader-ignore/>}
                                     </button>
                                 </div>
                                 {errors.password && <p className="text-sm text-destructive">
