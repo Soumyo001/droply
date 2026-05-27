@@ -125,7 +125,7 @@ const UploadImageSection = ({currentFolderId, onSuccess}: Props) => {
                         <div className="min-w-0 flex-1">
                             <p className="text-xs text-left text-muted-foreground font-semibold truncate">{file.name}</p>
                             <p className="text-xs text-left text-muted-foreground font-light">
-                                {`${String((file.size/1024).toFixed(2))} kb`}
+                                {`${String((file.size/1024).toFixed(2))} KB`}
                             </p>
                         </div>
                         <X
