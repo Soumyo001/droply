@@ -161,7 +161,7 @@ const UploadImageSection = ({currentFolderId, onSuccess}: Props) => {
                     type="file"
                     accept="image/png, image/jpeg, image/webp"
                     className="hidden"
-                    disabled={!!cover}
+                    disabled={!!cover && !!file}
                     onChange={handleChange}
                 />
             </label>
